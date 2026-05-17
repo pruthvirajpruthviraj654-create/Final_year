@@ -1,0 +1,411 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Generate — ExamAI v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/static/css/style.css"/></head><body>
+<div class="dash-wrap">
+  <aside class="sidebar">
+    <div class="sidebar-header"><div class="logo" style="color:#f0ede8"><div class="logo-mark">Q</div>ExamAI</div></div>
+    <div class="sidebar-user"><div class="user-avatar" id="sidebar-avatar">?</div>
+      <div><div class="user-name" id="sidebar-user-name">Loading…</div><div class="user-role" id="sidebar-user-role">Teacher</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a href="/dashboard"     class="nav-item"><span class="ni-icon">📊</span> Overview</a>
+      <a href="/syllabus-page" class="nav-item"><span class="ni-icon">📄</span> My Syllabi</a>
+      <a href="/generate"      class="nav-item active"><span class="ni-icon">🧠</span> Generate Paper</a>
+      <a href="/history"       class="nav-item"><span class="ni-icon">📋</span> My Papers</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="/qbank"         class="nav-item"><span class="ni-icon">🗄</span> Question Bank</a>
+      <a href="/analytics"     class="nav-item"><span class="ni-icon">📈</span> Analytics</a>
+      <div class="nav-section-label">Account</div>
+      <a href="/settings"      class="nav-item"><span class="ni-icon">⚙️</span> Settings</a>
+    </nav>
+    <div class="sidebar-footer"><button class="btn-logout" onclick="handleLogout()">🚪 Sign Out</button></div>
+  </aside>
+  <main class="main-content">
+    <div class="topbar"><h2>Generate Question Paper</h2>
+      <div class="topbar-right"><span class="badge-ai">Syllabus-Based AI Active</span></div>
+    </div>
+    <div class="page-body">
+      <div class="gen-layout">
+
+        <!-- LEFT: CONFIG -->
+        <div class="gen-panel">
+          <h3>🎛️ Paper Configuration</h3>
+
+          <!-- Syllabus source -->
+          <div style="background:rgba(13,115,119,.08);border:1px solid rgba(13,115,119,.3);border-radius:10px;padding:14px;margin-bottom:18px">
+            <div style="font-weight:700;font-size:.88rem;color:var(--teal);margin-bottom:8px">📄 Syllabus Source</div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap" id="syl-source-btns">
+              <button class="btn btn-teal btn-sm" onclick="loadMySyllabi()">Load My Syllabus</button>
+              <button class="btn btn-outline btn-sm" onclick="useDefaultTopics()">Use Built-in Topics</button>
+            </div>
+            <div id="syl-loaded-info" style="margin-top:8px;font-size:.8rem;color:var(--teal);display:none"></div>
+          </div>
+
+          <div class="fgroup">
+            <label>Subject</label>
+            <select id="gen-subject" onchange="onSubjectChange()">
+              <option value="DBMS">Database Management Systems (DBMS)</option>
+              <option value="Python">Python Programming</option>
+              <option value="Java">Java Programming</option>
+              <option value="AI">Artificial Intelligence</option>
+              <option value="CN">Computer Networks</option>
+              <option value="OS">Operating Systems</option>
+              <option value="DS">Data Structures & Algorithms</option>
+              <option value="ML">Machine Learning</option>
+              <option value="SE">Software Engineering</option>
+            </select>
+          </div>
+
+          <div class="fgroup">
+            <label>Exam Type</label>
+            <select id="gen-exam-type">
+              <option>End Semester Examination</option>
+              <option>Mid Semester Test</option>
+              <option>Unit Test</option>
+              <option>Internal Assessment</option>
+              <option>Model Examination</option>
+            </select>
+          </div>
+
+          <div class="fgroup">
+            <label>Difficulty Level</label>
+            <div class="difficulty-bar">
+              <div class="diff-opt" onclick="selDiff(this,'Easy')">Easy</div>
+              <div class="diff-opt sel-mixed" onclick="selDiff(this,'Mixed')">Mixed ✓</div>
+              <div class="diff-opt" onclick="selDiff(this,'Medium')">Medium</div>
+              <div class="diff-opt" onclick="selDiff(this,'Hard')">Hard</div>
+            </div>
+            <input type="hidden" id="gen-difficulty" value="Mixed"/>
+          </div>
+
+          <div class="fgroup">
+            <label>Bloom's Taxonomy Level</label>
+            <select id="gen-bloom">
+              <option value="L1-Remember">L1 — Remember (Define, List, Recall)</option>
+              <option value="L2-Understand" selected>L2 — Understand (Explain, Describe)</option>
+              <option value="L3-Apply">L3 — Apply (Solve, Implement, Calculate)</option>
+              <option value="L4-Analyze">L4 — Analyze (Compare, Differentiate)</option>
+              <option value="L5-Evaluate">L5 — Evaluate (Assess, Critique, Judge)</option>
+              <option value="L6-Create">L6 — Create (Design, Develop, Build)</option>
+            </select>
+          </div>
+
+          <!-- Topics from syllabus -->
+          <div class="fgroup">
+            <label>Topics to Cover <span style="font-size:.75rem;color:var(--muted)">(from your syllabus)</span></label>
+            <div id="topics-container" style="max-height:180px;overflow-y:auto;background:var(--cream);border:1.5px solid var(--border);border-radius:10px;padding:10px">
+              <div style="color:var(--muted);font-size:.85rem;text-align:center;padding:20px">
+                Load a syllabus or use built-in topics above ↑
+              </div>
+            </div>
+          </div>
+
+          <!-- Marks config -->
+          <div class="fgroup">
+            <label>Question Types & Marks</label>
+            <div id="marks-config">
+              <div class="marks-row" data-type="MCQ"    data-marks="1">
+                <label class="check-item"><input type="checkbox" class="qtype-cb" value="MCQ"    checked/> MCQ — 1 Mark</label>
+                <div class="num-stepper" style="margin-left:auto">
+                  <button class="ns-btn" type="button" onclick="stepMC('MCQ',-1)">−</button>
+                  <div class="ns-val" id="count-MCQ">5</div>
+                  <button class="ns-btn" type="button" onclick="stepMC('MCQ',1)">+</button>
+                </div>
+              </div>
+              <div class="marks-row" data-type="Short"  data-marks="2">
+                <label class="check-item"><input type="checkbox" class="qtype-cb" value="Short"  checked/> Short — 2 Marks</label>
+                <div class="num-stepper" style="margin-left:auto">
+                  <button class="ns-btn" type="button" onclick="stepMC('Short',-1)">−</button>
+                  <div class="ns-val" id="count-Short">5</div>
+                  <button class="ns-btn" type="button" onclick="stepMC('Short',1)">+</button>
+                </div>
+              </div>
+              <div class="marks-row" data-type="Medium" data-marks="5">
+                <label class="check-item"><input type="checkbox" class="qtype-cb" value="Medium" checked/> Medium — 5 Marks</label>
+                <div class="num-stepper" style="margin-left:auto">
+                  <button class="ns-btn" type="button" onclick="stepMC('Medium',-1)">−</button>
+                  <div class="ns-val" id="count-Medium">3</div>
+                  <button class="ns-btn" type="button" onclick="stepMC('Medium',1)">+</button>
+                </div>
+              </div>
+              <div class="marks-row" data-type="Descriptive" data-marks="7">
+                <label class="check-item"><input type="checkbox" class="qtype-cb" value="Descriptive"/> Descriptive — 7 Marks</label>
+                <div class="num-stepper" style="margin-left:auto">
+                  <button class="ns-btn" type="button" onclick="stepMC('Descriptive',-1)">−</button>
+                  <div class="ns-val" id="count-Descriptive">2</div>
+                  <button class="ns-btn" type="button" onclick="stepMC('Descriptive',1)">+</button>
+                </div>
+              </div>
+              <div class="marks-row" data-type="Long" data-marks="10">
+                <label class="check-item"><input type="checkbox" class="qtype-cb" value="Long"   checked/> Long — 10 Marks</label>
+                <div class="num-stepper" style="margin-left:auto">
+                  <button class="ns-btn" type="button" onclick="stepMC('Long',-1)">−</button>
+                  <div class="ns-val" id="count-Long">2</div>
+                  <button class="ns-btn" type="button" onclick="stepMC('Long',1)">+</button>
+                </div>
+              </div>
+            </div>
+            <div style="margin-top:8px;font-size:.82rem;color:var(--gold);font-weight:600" id="marks-total">Total: calculating…</div>
+          </div>
+
+          <div class="fgroup">
+            <label>Duration</label>
+            <select id="gen-duration">
+              <option>1 Hour</option><option>1.5 Hours</option>
+              <option selected>3 Hours</option><option>2 Hours</option>
+            </select>
+          </div>
+
+          <button class="btn btn-ink" style="width:100%;justify-content:center;padding:14px;font-size:.95rem" onclick="generatePaper()" id="gen-btn">
+            🧠 Generate Syllabus-Based Paper
+          </button>
+          <p style="text-align:center;font-size:.75rem;color:var(--muted);margin-top:8px">
+            Set OpenRouter API key in <a href="/settings" style="color:var(--gold)">Settings</a> for live AI. Built-in bank used otherwise.
+          </p>
+        </div>
+
+        <!-- RIGHT: OUTPUT -->
+        <div class="gen-panel">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+            <h3 style="margin-bottom:0">📄 Generated Output</h3>
+            <div id="gen-actions" style="display:none;gap:8px;flex-wrap:wrap">
+              <button class="btn btn-gold-sm btn-sm" onclick="savePaper()">💾 Save</button>
+              <button class="btn btn-teal btn-sm" onclick="downloadCurrentPdf()">📄 PDF</button>
+              <button class="btn btn-outline btn-sm" onclick="generatePaper()">🔄 Regen</button>
+            </div>
+          </div>
+          <div id="gen-output-wrap">
+            <div class="ai-placeholder">
+              <div class="ph-icon">✦</div>
+              <p><strong>Upload syllabus → Configure → Generate</strong></p>
+              <p style="font-size:.85rem">Questions will be strictly from your syllabus topics.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Syllabus Picker Modal -->
+<div class="modal-overlay" id="syl-picker-modal">
+  <div class="modal-box" style="max-width:520px">
+    <div class="modal-header">
+      <h2>Select Syllabus</h2>
+      <button class="btn-close" onclick="closeModal('syl-picker-modal')">✕</button>
+    </div>
+    <div id="syl-picker-list"><div style="text-align:center;padding:40px;color:var(--muted)">Loading…</div></div>
+  </div>
+</div>
+
+<div id="toast-box"></div>
+<script src="/static/js/app.js"></script>
+<script>
+let _syllabusId = null;
+let _topics     = [];
+let _currentPaper = null;
+let _savedPaperId = null;
+let _selectedDiff = "Mixed";
+
+// Init: check localStorage for last syllabus
+(function(){
+  const saved = localStorage.getItem("examai_last_syllabus");
+  if(saved){
+    try{
+      const d = JSON.parse(saved);
+      _syllabusId = d.id;
+      _topics     = d.topics || [];
+      if(d.subject) document.getElementById("gen-subject").value = d.subject;
+      showTopics(_topics);
+      document.getElementById("syl-loaded-info").style.display="block";
+      document.getElementById("syl-loaded-info").textContent = `✅ Loaded: ${d.subject} — ${_topics.length} topics`;
+    }catch(e){}
+  }
+  updateMarksTotal();
+})();
+
+function selDiff(el,val){
+  document.querySelectorAll(".diff-opt").forEach(d=>d.className="diff-opt");
+  const cls={Easy:"sel-easy",Mixed:"sel-mixed",Medium:"sel-med",Hard:"sel-hard"};
+  el.classList.add(cls[val]||"sel-mixed");
+  document.getElementById("gen-difficulty").value=val;
+  _selectedDiff=val;
+}
+
+function stepMC(type,step){
+  const el=document.getElementById("count-"+type);
+  if(!el)return;
+  let v=parseInt(el.textContent)+step;
+  el.textContent=Math.max(0,Math.min(20,v));
+  updateMarksTotal();
+}
+
+function updateMarksTotal(){
+  const marksMap={MCQ:1,Short:2,Medium:5,Descriptive:7,Long:10};
+  let total=0;
+  document.querySelectorAll(".qtype-cb:checked").forEach(cb=>{
+    const t=cb.value;
+    const cnt=parseInt(document.getElementById("count-"+t)?.textContent||"0");
+    total+=cnt*(marksMap[t]||2);
+  });
+  const el=document.getElementById("marks-total");
+  if(el) el.textContent=`Total: ${total} marks`;
+}
+document.querySelectorAll(".qtype-cb").forEach(cb=>cb.onchange=updateMarksTotal);
+
+function showTopics(topics){
+  const c=document.getElementById("topics-container");
+  if(!topics||!topics.length){
+    c.innerHTML="<div style='color:var(--muted);font-size:.85rem;text-align:center;padding:16px'>No topics loaded.</div>";
+    return;
+  }
+  c.innerHTML=topics.map(t=>`
+    <label class="check-item" style="margin-bottom:4px">
+      <input type="checkbox" class="topic-cb" value="${t.replace(/"/g,'&quot;')}" checked/>
+      <span style="font-size:.83rem">${t}</span>
+    </label>`).join("");
+}
+
+function onSubjectChange(){
+  _syllabusId=null; _topics=[];
+  document.getElementById("syl-loaded-info").style.display="none";
+  document.getElementById("topics-container").innerHTML="<div style='color:var(--muted);font-size:.85rem;text-align:center;padding:16px'>Load a syllabus or use built-in topics ↑</div>";
+}
+
+async function loadMySyllabi(){
+  const res = await API.get("/syllabus/list");
+  if(!res?.ok){ showToast("Failed to load syllabi","error"); return; }
+  const syllabi = res.data.syllabi||[];
+  const list = document.getElementById("syl-picker-list");
+  if(!syllabi.length){
+    list.innerHTML="<div style='text-align:center;padding:40px;color:var(--muted)'>No syllabi yet. <a href='/syllabus-page' style='color:var(--gold)'>Upload one →</a></div>";
+  } else {
+    list.innerHTML = syllabi.map(s=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)">
+        <div>
+          <div style="font-weight:600;font-size:.9rem">${s.subject}</div>
+          <div style="font-size:.75rem;color:var(--muted)">${s.topic_count||0} topics · ${s.created_at}</div>
+        </div>
+        <button class="btn btn-gold-sm btn-sm" onclick="pickSyllabus(${s.id},'${s.subject}')">Use This</button>
+      </div>`).join("");
+  }
+  openModal("syl-picker-modal");
+}
+
+async function pickSyllabus(id, subject){
+  closeModal("syl-picker-modal");
+  const res = await API.get("/syllabus/"+id);
+  if(!res?.ok){ showToast("Failed","error"); return; }
+  const syl = res.data.syllabus;
+  _syllabusId = id;
+  _topics = syl.topics||[];
+  document.getElementById("gen-subject").value = subject;
+  showTopics(_topics);
+  document.getElementById("syl-loaded-info").style.display="block";
+  document.getElementById("syl-loaded-info").textContent=`✅ Loaded: ${subject} — ${_topics.length} topics`;
+  showToast(`✅ Syllabus loaded: ${_topics.length} topics`,"success");
+}
+
+async function useDefaultTopics(){
+  const subject = document.getElementById("gen-subject").value;
+  const res = await API.post("/syllabus/default",{subject});
+  if(res?.ok&&res.data?.success){
+    _syllabusId = res.data.syllabus?.id;
+    _topics = res.data.topics||[];
+    showTopics(_topics);
+    document.getElementById("syl-loaded-info").style.display="block";
+    document.getElementById("syl-loaded-info").textContent=`✅ Built-in topics: ${_topics.length} topics for ${subject}`;
+    localStorage.setItem("examai_last_syllabus",JSON.stringify({id:_syllabusId,topics:_topics,subject}));
+    showToast(`✅ Built-in topics loaded: ${_topics.length}`,"success");
+  } else showToast(res?.data?.message||"Failed","error");
+}
+
+function getMarksConfig(){
+  const marksMap={MCQ:1,Short:2,Medium:5,Descriptive:7,Long:10};
+  const cfg=[];
+  document.querySelectorAll(".qtype-cb:checked").forEach(cb=>{
+    const t=cb.value;
+    const cnt=parseInt(document.getElementById("count-"+t)?.textContent||"0");
+    if(cnt>0) cfg.push({type:t,marks_per_q:marksMap[t]||2,count:cnt,section_marks:cnt*(marksMap[t]||2)});
+  });
+  return cfg;
+}
+
+function getSelectedTopics(){
+  const checked=[...document.querySelectorAll(".topic-cb:checked")].map(c=>c.value);
+  return checked.length>0?checked:_topics;
+}
+
+async function generatePaper(){
+  const subject   = document.getElementById("gen-subject").value;
+  const exam_type = document.getElementById("gen-exam-type").value;
+  const difficulty= document.getElementById("gen-difficulty").value;
+  const bloom     = document.getElementById("gen-bloom").value;
+  const duration  = document.getElementById("gen-duration").value;
+  const marks_config = getMarksConfig();
+  const topics    = getSelectedTopics();
+  const total_marks = marks_config.reduce((s,c)=>s+c.section_marks,0);
+
+  if(!marks_config.length){ showToast("Select at least one question type","error"); return; }
+
+  const btn = document.getElementById("gen-btn");
+  btn.textContent="⏳ Generating…"; btn.disabled=true;
+  const outWrap = document.getElementById("gen-output-wrap");
+  outWrap.innerHTML=`<div class="ai-placeholder"><div class="loading-dots"><span></span><span></span><span></span></div>
+    <p><strong>AI generating syllabus-based questions…</strong></p>
+    <p style="font-size:.82rem;color:var(--muted);margin-top:6px">Topics: ${topics.slice(0,4).join(", ")}${topics.length>4?"…":""}</p></div>`;
+  document.getElementById("gen-actions").style.display="none";
+
+  const res = await API.post("/paper/generate",{
+    subject, exam_type, difficulty, bloom_level:bloom, duration,
+    total_marks, q_count:marks_config.reduce((s,c)=>s+c.count,0),
+    q_types:marks_config.map(c=>c.type),
+    marks_config, topics, syllabus_id:_syllabusId, units:[]
+  });
+
+  btn.textContent="🧠 Generate Syllabus-Based Paper"; btn.disabled=false;
+
+  if(res?.ok&&res.data?.success){
+    _currentPaper={...res.data.paper,subject,exam_type,difficulty,bloom_level:bloom,duration,
+      total_marks,marks_config,topics,syllabus_id:_syllabusId};
+    outWrap.innerHTML=`<div class="ai-output-area">${escHtml(res.data.paper.content)}</div>`;
+    document.getElementById("gen-actions").style.display="flex";
+    showToast("✅ Paper generated from syllabus topics!","success");
+  } else {
+    outWrap.innerHTML=`<div class="ai-placeholder"><p style="color:var(--danger)">❌ ${res?.data?.message||"Generation failed."}</p></div>`;
+    showToast(res?.data?.message||"Failed","error");
+  }
+}
+
+async function savePaper(){
+  if(!_currentPaper){showToast("Generate first","error");return;}
+  const p=_currentPaper;
+  const res=await API.post("/paper/save",{
+    title:`${p.subject} – ${p.exam_type}`,
+    subject:p.subject, exam_type:p.exam_type, difficulty:p.difficulty,
+    bloom_level:p.bloom_level, duration:p.duration,
+    total_marks:p.total_marks, q_count:p.q_count||0,
+    content:p.content, paper_json:p.sections||{},
+    topics:p.topics, syllabus_id:p.syllabus_id, units:[]
+  });
+  if(res?.ok&&res.data?.success){
+    _savedPaperId=res.data.paper_id;
+    showToast("✅ Saved to history!","success");
+  } else showToast(res?.data?.message||"Save failed","error");
+}
+
+async function downloadCurrentPdf(){
+  if(!_savedPaperId) await savePaper();
+  if(_savedPaperId){
+    showToast("📄 Preparing PDF…","info");
+    window.location.href=`/paper/${_savedPaperId}/pdf?token=${localStorage.getItem("examai_token")}`;
+  }
+}
+
+function escHtml(s){return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br/>");}
+function openModal(id){document.getElementById(id)?.classList.add("open");}
+function closeModal(id){document.getElementById(id)?.classList.remove("open");}
+</script>
+</body></html>

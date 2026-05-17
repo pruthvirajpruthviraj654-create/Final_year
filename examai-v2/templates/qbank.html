@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+
+<title>Question Bank — ExamAI v2</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+
+<link rel="stylesheet" href="/static/css/style.css"/>
+
+</head>
+<body>
+<div class="dash-wrap">
+  <aside class="sidebar">
+    <div class="sidebar-header"><div class="logo" style="color:#f0ede8"><div class="logo-mark">Q</div>ExamAI</div></div>
+    <div class="sidebar-user"><div class="user-avatar" id="sidebar-avatar">?</div>
+      <div><div class="user-name" id="sidebar-user-name">Loading…</div><div class="user-role" id="sidebar-user-role">Teacher</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a href="/dashboard" class="nav-item"><span class="ni-icon">📊</span> Overview</a>
+      <a href="/syllabus-page" class="nav-item"><span class="ni-icon">📄</span> My Syllabi</a>
+      <a href="/generate" class="nav-item"><span class="ni-icon">🧠</span> Generate Paper</a>
+      <a href="/history" class="nav-item"><span class="ni-icon">📋</span> My Papers</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="/qbank" class="nav-item active"><span class="ni-icon">🗄</span> Question Bank</a>
+      <a href="/analytics" class="nav-item"><span class="ni-icon">📈</span> Analytics</a>
+      <div class="nav-section-label">Account</div>
+      <a href="/settings" class="nav-item"><span class="ni-icon">⚙️</span> Settings</a>
+    </nav>
+    <div class="sidebar-footer"><button class="btn-logout" onclick="handleLogout()">🚪 Sign Out</button></div>
+  </aside>
+  <main class="main-content">
+    <div class="topbar"><h2>Question Bank</h2>
+      <div class="topbar-right">
+        <span id="qb-count" style="font-size:.82rem;color:var(--muted)"></span>
+        <button class="btn btn-ink btn-sm" onclick="openAddQ()">+ Add Question</button>
+      </div>
+    </div>
+    <div class="page-body">
+      <div class="qbank-filters">
+        <input type="search" id="qb-search" placeholder="🔍 Search questions…" style="width:260px" oninput="loadQBank()"/>
+        <select id="qb-sub" onchange="loadQBank()"><option value="">All Subjects</option>
+          <option>DBMS</option><option>Python</option><option>Java</option><option>AI</option><option>CN</option><option>OS</option><option>DS</option><option>ML</option></select>
+        <select id="qb-diff" onchange="loadQBank()"><option value="">All Difficulties</option><option>Easy</option><option>Medium</option><option>Hard</option></select>
+        <select id="qb-type" onchange="loadQBank()"><option value="">All Types</option><option>MCQ</option><option>Short</option><option>Medium</option><option>Descriptive</option><option>Long</option></select>
+      </div>
+      <div id="qbank-list"><div style="text-align:center;padding:60px;color:var(--muted)">Loading…</div></div>
+    </div>
+  </main>
+</div>
+<div class="modal-overlay" id="add-q-modal">
+  <div class="modal-box">
+    <div class="modal-header"><h2 id="modal-q-title">Add Question</h2><button class="btn-close" onclick="closeModal('add-q-modal')">✕</button></div>
+    <input type="hidden" id="edit-q-id"/>
+    <div class="fgroup"><label>Question Text</label><textarea id="nq-text" style="min-height:100px" placeholder="Enter full question…"></textarea></div>
+    <div class="form-row">
+      <div class="fgroup" style="margin-bottom:0"><label>Subject</label><select id="nq-sub"><option>DBMS</option><option>Python</option><option>Java</option><option>AI</option><option>CN</option><option>OS</option><option>DS</option><option>ML</option></select></div>
+      <div class="fgroup" style="margin-bottom:0"><label>Difficulty</label><select id="nq-diff"><option>Easy</option><option selected>Medium</option><option>Hard</option></select></div>
+    </div>
+    <div style="margin-bottom:14px"></div>
+    <div class="form-row">
+      <div class="fgroup" style="margin-bottom:0"><label>Type</label><select id="nq-type" onchange="toggleMcqOpts()"><option>MCQ</option><option>Short</option><option>Medium</option><option>Descriptive</option><option>Long</option></select></div>
+      <div class="fgroup" style="margin-bottom:0"><label>Topic</label><input id="nq-topic" placeholder="e.g. Normalization"/></div>
+    </div>
+    <div id="mcq-opts-wrap" style="margin-top:14px">
+      <div class="form-row"><div class="fgroup" style="margin-bottom:0"><label>Option A</label><input id="opt-a"/></div><div class="fgroup" style="margin-bottom:0"><label>Option B</label><input id="opt-b"/></div></div>
+      <div style="margin-bottom:10px"></div>
+      <div class="form-row"><div class="fgroup" style="margin-bottom:0"><label>Option C</label><input id="opt-c"/></div><div class="fgroup" style="margin-bottom:0"><label>Option D</label><input id="opt-d"/></div></div>
+      <div style="margin-bottom:10px"></div>
+      <div class="fgroup"><label>Correct Answer</label><select id="nq-ans"><option>A</option><option>B</option><option>C</option><option>D</option></select></div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:8px">
+      <button class="btn btn-ink" onclick="submitQ()">Save</button>
+      <button class="btn btn-outline" onclick="closeModal('add-q-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+<div id="toast-box"></div>
+<script src="/static/js/app.js"></script>
+</body></html>

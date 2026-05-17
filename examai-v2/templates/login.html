@@ -1,0 +1,21 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Sign In — ExamAI v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/static/css/style.css"/></head><body>
+<div class="auth-wrap"><div class="auth-card">
+  <div class="auth-logo"><div class="logo-mark">Q</div><span>ExamAI v2</span></div>
+  <h2>Welcome back</h2><p class="auth-sub">Sign in to your teacher account</p>
+  <div id="login-error" class="alert-msg alert-error" style="display:none"></div>
+  <div class="fgroup"><label>Email Address</label>
+    <input type="email" id="login-email" placeholder="teacher@university.edu"/></div>
+  <div class="fgroup"><label>Password</label>
+    <input type="password" id="login-pass" placeholder="••••••••"/></div>
+  <button class="btn-submit" id="login-btn" onclick="handleLogin()">Sign In →</button>
+  <div style="margin-top:14px;background:rgba(201,151,58,.08);border:1px solid rgba(201,151,58,.2);border-radius:9px;padding:12px;font-size:.8rem;color:var(--muted)">
+    💡 <strong style="color:var(--gold)">Demo:</strong> teacher@examai.edu / teacher123 &nbsp;|&nbsp; admin@examai.edu / admin123</div>
+  <div class="auth-switch">No account? <a href="/register">Create one</a></div>
+  <div style="margin-top:10px;text-align:center"><a href="/" style="font-size:.82rem;color:var(--muted)">← Home</a></div>
+</div></div>
+<div id="toast-box"></div><script src="/static/js/app.js"></script>
+<script>document.getElementById("login-pass").addEventListener("keydown",e=>{if(e.key==="Enter")handleLogin();});</script>
+</body></html>

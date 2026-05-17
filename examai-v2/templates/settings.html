@@ -1,0 +1,94 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Settings — ExamAI v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/static/css/style.css"/>
+</head><body>
+<div class="dash-wrap">
+<aside class="sidebar">
+  <div class="sidebar-header"><div class="logo" style="color:#f0ede8"><div class="logo-mark">Q</div>ExamAI</div></div>
+  <div class="sidebar-user"><div class="user-avatar" id="sidebar-avatar">?</div>
+    <div><div class="user-name" id="sidebar-user-name">Loading</div><div class="user-role" id="sidebar-user-role">Teacher</div></div></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Main</div>
+    <a href="/dashboard" class="nav-item"><span class="ni-icon">📊</span> Overview</a>
+    <a href="/syllabus-page" class="nav-item"><span class="ni-icon">📄</span> My Syllabi</a>
+    <a href="/generate" class="nav-item"><span class="ni-icon">🧠</span> Generate Paper</a>
+    <a href="/history" class="nav-item"><span class="ni-icon">📋</span> My Papers</a>
+    <div class="nav-section-label">Tools</div>
+    <a href="/qbank" class="nav-item"><span class="ni-icon">🗄</span> Question Bank</a>
+    <a href="/analytics" class="nav-item"><span class="ni-icon">📈</span> Analytics</a>
+    <div class="nav-section-label">Account</div>
+    <a href="/settings" class="nav-item active"><span class="ni-icon">⚙️</span> Settings</a>
+  </nav>
+  <div class="sidebar-footer"><button class="btn-logout" onclick="handleLogout()">🚪 Sign Out</button></div>
+</aside>
+<main class="main-content">
+  <div class="topbar"><h2>Settings & API</h2></div>
+  <div class="page-body">
+    <div style="max-width:680px">
+      <div class="settings-section">
+        <h3>🔑 AI API Configuration</h3>
+        <div class="fgroup">
+          <label>OpenRouter API Key</label>
+          <div style="display:flex;gap:10px">
+            <input type="password" id="set-api-key" placeholder="sk-or-v1-..." style="flex:1"/>
+            <button class="btn btn-outline btn-sm" onclick="document.getElementById('set-api-key').type=document.getElementById('set-api-key').type==='password'?'text':'password'">Show</button>
+          </div>
+          <p style="font-size:.78rem;color:var(--muted);margin-top:6px">Free key at <a href="https://openrouter.ai" target="_blank" style="color:var(--gold)">openrouter.ai</a> — 1000 requests/day free</p>
+        </div>
+        <div class="fgroup">
+          <label>AI Model</label>
+          <select id="set-model">
+            <option value="openai/gpt-3.5-turbo">GPT-3.5 Turbo (Fast, Free tier)</option>
+            <option value="openai/gpt-4">GPT-4 (Best quality)</option>
+            <option value="anthropic/claude-3-sonnet">Claude 3 Sonnet</option>
+            <option value="mistralai/mistral-7b-instruct">Mistral 7B (Free)</option>
+          </select>
+        </div>
+      </div>
+      <div class="settings-section">
+        <h3>🏫 Institution Details</h3>
+        <div class="form-row">
+          <div class="fgroup" style="margin-bottom:0"><label>College / University Name</label><input id="set-uni" placeholder="VisionCampus University"/></div>
+          <div class="fgroup" style="margin-bottom:0"><label>Department</label><input id="set-dept" placeholder="Computer Science"/></div>
+        </div>
+      </div>
+      <div class="settings-section">
+        <h3>👤 Profile</h3>
+        <div class="form-row">
+          <div class="fgroup" style="margin-bottom:0"><label>Full Name</label><input id="set-name" placeholder="Dr. Ramesh Kumar"/></div>
+        </div>
+        <div style="margin-bottom:14px"></div>
+        <div class="form-row">
+          <div class="fgroup" style="margin-bottom:0"><label>Current Password</label><input type="password" id="set-curr-pass" placeholder="Required to change password"/></div>
+          <div class="fgroup" style="margin-bottom:0"><label>New Password</label><input type="password" id="set-new-pass" placeholder="Leave blank to keep current"/></div>
+        </div>
+      </div>
+      <button class="btn btn-ink" style="padding:12px 32px" onclick="saveSettings()">💾 Save All Settings</button>
+    </div>
+  </div>
+</main></div>
+<div id="toast-box"></div>
+<script src="/static/js/app.js"></script>
+<script>
+async function loadS(){
+  const res=await API.get("/auth/me");
+  if(!res||!res.ok)return;
+  const u=res.data.user;
+  const S=(id,v)=>{const e=document.getElementById(id);if(e)e.value=v||"";};
+  S("set-name",u.name);S("set-dept",u.department);S("set-uni",u.college_name||u.university);
+  S("set-api-key",u.api_key);S("set-model",u.ai_model);
+}
+async function saveSettings(){
+  const g=(id)=>document.getElementById(id)?.value?.trim()||"";
+  const res=await API.put("/auth/profile",{
+    name:g("set-name"),department:g("set-dept"),university:g("set-uni"),
+    college_name:g("set-uni"),api_key:g("set-api-key"),ai_model:g("set-model"),
+    current_password:g("set-curr-pass"),new_password:g("set-new-pass")
+  });
+  showToast(res?.data?.message||"Saved",res?.ok?"success":"error");
+}
+loadS();
+</script>
+</body></html>

@@ -1,0 +1,29 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Register — ExamAI v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/static/css/style.css"/></head><body>
+<div class="auth-wrap"><div class="auth-card">
+  <div class="auth-logo"><div class="logo-mark">Q</div><span>ExamAI v2</span></div>
+  <h2>Create Account</h2><p class="auth-sub">Start generating syllabus-based AI papers</p>
+  <div id="reg-error" class="alert-msg alert-error" style="display:none"></div>
+  <div class="form-row" style="margin-bottom:0">
+    <div class="fgroup" style="margin-bottom:16px"><label>Full Name</label><input type="text" id="reg-name" placeholder="Dr. Ramesh Kumar"/></div>
+    <div class="fgroup" style="margin-bottom:16px"><label>Email</label><input type="email" id="reg-email" placeholder="you@university.edu"/></div>
+  </div>
+  <div class="form-row" style="margin-bottom:0">
+    <div class="fgroup" style="margin-bottom:16px"><label>Department</label>
+      <select id="reg-dept"><option value="">Select...</option>
+        <option>Computer Science</option><option>Electronics</option><option>Mechanical</option><option>Civil</option><option>Mathematics</option><option>Information Technology</option>
+      </select></div>
+    <div class="fgroup" style="margin-bottom:16px"><label>University</label><input id="reg-uni" placeholder="VisionCampus University"/></div>
+  </div>
+  <div class="form-row" style="margin-bottom:0">
+    <div class="fgroup" style="margin-bottom:16px"><label>Password</label><input type="password" id="reg-pass" placeholder="Min 6 chars"/></div>
+    <div class="fgroup" style="margin-bottom:16px"><label>Confirm Password</label><input type="password" id="reg-confirm" placeholder="Repeat"/></div>
+  </div>
+  <button class="btn-submit" id="reg-btn" onclick="handleRegister()">Create Account →</button>
+  <div class="auth-switch">Already have an account? <a href="/login">Sign in</a></div>
+  <div style="margin-top:10px;text-align:center"><a href="/" style="font-size:.82rem;color:var(--muted)">← Home</a></div>
+</div></div>
+<div id="toast-box"></div><script src="/static/js/app.js"></script>
+</body></html>

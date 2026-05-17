@@ -1,0 +1,241 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Syllabi — ExamAI v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/static/css/style.css"/></head><body>
+<div class="dash-wrap">
+  <aside class="sidebar">
+    <div class="sidebar-header"><div class="logo" style="color:#f0ede8"><div class="logo-mark">Q</div>ExamAI</div></div>
+    <div class="sidebar-user"><div class="user-avatar" id="sidebar-avatar">?</div>
+      <div><div class="user-name" id="sidebar-user-name">Loading…</div><div class="user-role" id="sidebar-user-role">Teacher</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a href="/dashboard"     class="nav-item"><span class="ni-icon">📊</span> Overview</a>
+      <a href="/syllabus-page" class="nav-item active"><span class="ni-icon">📄</span> My Syllabi</a>
+      <a href="/generate"      class="nav-item"><span class="ni-icon">🧠</span> Generate Paper</a>
+      <a href="/history"       class="nav-item"><span class="ni-icon">📋</span> My Papers</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="/qbank"         class="nav-item"><span class="ni-icon">🗄</span> Question Bank</a>
+      <a href="/analytics"     class="nav-item"><span class="ni-icon">📈</span> Analytics</a>
+      <div class="nav-section-label">Account</div>
+      <a href="/settings"      class="nav-item"><span class="ni-icon">⚙️</span> Settings</a>
+    </nav>
+    <div class="sidebar-footer"><button class="btn-logout" onclick="handleLogout()">🚪 Sign Out</button></div>
+  </aside>
+  <main class="main-content">
+    <div class="topbar"><h2>Syllabus Manager</h2>
+      <div class="topbar-right"><span class="badge-ai">AI Topic Extractor Active</span></div>
+    </div>
+    <div class="page-body">
+
+      <!-- Upload Section -->
+      <div class="grid-2" style="margin-bottom:24px">
+
+        <!-- File Upload -->
+        <div class="card">
+          <div class="card-title">📤 Upload Syllabus File</div>
+          <div class="card-sub">Supports PDF, DOCX, TXT — AI extracts topics automatically</div>
+          <div class="fgroup">
+            <label>Subject</label>
+            <select id="up-subject">
+              <option value="">Select Subject…</option>
+              <option>DBMS</option><option>Python</option><option>Java</option><option>AI</option>
+              <option>CN</option><option>OS</option><option>DS</option><option>ML</option>
+              <option>SE</option><option>PHP</option><option>C</option><option>C++</option>
+            </select>
+          </div>
+          <div class="fgroup">
+            <label>Syllabus File</label>
+            <div id="drop-zone" style="border:2px dashed var(--border);border-radius:10px;padding:32px;text-align:center;cursor:pointer;transition:all .2s;background:var(--cream)"
+              onclick="document.getElementById('file-input').click()"
+              ondragover="event.preventDefault();this.style.borderColor='var(--gold)'"
+              ondragleave="this.style.borderColor='var(--border)'"
+              ondrop="handleFileDrop(event)">
+              <div style="font-size:2rem;margin-bottom:8px">📄</div>
+              <div style="font-weight:600;margin-bottom:4px">Click to upload or drag & drop</div>
+              <div style="font-size:.82rem;color:var(--muted)">PDF, DOCX, TXT — Max 16MB</div>
+              <div id="file-name" style="margin-top:8px;font-size:.85rem;color:var(--teal);font-weight:600"></div>
+            </div>
+            <input type="file" id="file-input" accept=".pdf,.docx,.doc,.txt" style="display:none" onchange="handleFileSelect(this)"/>
+          </div>
+          <button class="btn btn-ink" style="width:100%;justify-content:center;padding:12px" onclick="uploadSyllabus()" id="upload-btn">
+            📤 Upload & Extract Topics
+          </button>
+        </div>
+
+        <!-- Manual Entry -->
+        <div class="card">
+          <div class="card-title">✏️ Enter Syllabus Manually</div>
+          <div class="card-sub">Paste or type your syllabus content</div>
+          <div class="fgroup">
+            <label>Subject</label>
+            <select id="manual-subject">
+              <option value="">Select Subject…</option>
+              <option>DBMS</option><option>Python</option><option>Java</option><option>AI</option>
+              <option>CN</option><option>OS</option><option>DS</option><option>ML</option>
+              <option>SE</option><option>PHP</option>
+            </select>
+          </div>
+          <div class="fgroup">
+            <label>Syllabus Content</label>
+            <textarea id="manual-text" placeholder="Unit 1: Introduction&#10;- Database concepts&#10;- ER model&#10;- Keys and constraints&#10;&#10;Unit 2: SQL&#10;- DDL, DML commands&#10;- Joins, subqueries&#10;..." style="min-height:160px"></textarea>
+          </div>
+          <div style="display:flex;gap:10px">
+            <button class="btn btn-ink" style="flex:1;justify-content:center;padding:12px" onclick="manualSyllabus()" id="manual-btn">
+              🧠 Extract Topics
+            </button>
+            <button class="btn btn-outline" style="flex:1;justify-content:center;padding:12px" onclick="useDefault()" id="default-btn">
+              📚 Use Default Topics
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Extraction Result -->
+      <div id="extract-result" style="display:none" class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div class="card-title" style="margin-bottom:0">✅ Topics Extracted</div>
+          <a href="/generate" class="btn btn-gold-sm btn-sm">🧠 Generate Paper with This →</a>
+        </div>
+        <div id="extract-stats" style="display:flex;gap:16px;margin-bottom:16px;flex-wrap:wrap"></div>
+        <div id="units-preview"></div>
+      </div>
+
+      <!-- Saved Syllabi -->
+      <div class="card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div>
+            <div class="card-title" style="margin-bottom:4px">📚 Saved Syllabi</div>
+            <div style="font-size:.83rem;color:var(--muted)" id="syl-count">Loading…</div>
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="loadSyllabi()">🔄 Refresh</button>
+        </div>
+        <div id="syllabi-list"><div style="text-align:center;padding:40px;color:var(--muted)">Loading…</div></div>
+      </div>
+
+    </div>
+  </main>
+</div>
+<div id="toast-box"></div>
+<script src="/static/js/app.js"></script>
+<script>
+let selectedFile = null;
+window._lastSyllabusId = null;
+
+function handleFileSelect(input){
+  if(input.files[0]){
+    selectedFile = input.files[0];
+    document.getElementById("file-name").textContent = "Selected: " + selectedFile.name;
+  }
+}
+function handleFileDrop(e){
+  e.preventDefault();
+  document.getElementById("drop-zone").style.borderColor = "var(--border)";
+  const file = e.dataTransfer.files[0];
+  if(file){ selectedFile = file; document.getElementById("file-name").textContent = "Selected: " + file.name; }
+}
+
+async function uploadSyllabus(){
+  const subject = document.getElementById("up-subject").value;
+  if(!subject){ showToast("Select a subject first","error"); return; }
+  if(!selectedFile){ showToast("Upload a file first","error"); return; }
+  const btn = document.getElementById("upload-btn");
+  btn.textContent = "⏳ Extracting topics…"; btn.disabled = true;
+  const fd = new FormData();
+  fd.append("file", selectedFile);
+  fd.append("subject", subject);
+  const token = localStorage.getItem("examai_token");
+  try{
+    const resp = await fetch("/syllabus/upload",{method:"POST",headers:{Authorization:"Bearer "+token},body:fd});
+    const data = await resp.json();
+    if(data.success){ showExtractResult(data); showToast("✅ "+data.message,"success"); loadSyllabi(); }
+    else showToast(data.message,"error");
+  }catch(e){ showToast("Upload failed","error"); }
+  btn.textContent = "📤 Upload & Extract Topics"; btn.disabled = false;
+}
+
+async function manualSyllabus(){
+  const subject = document.getElementById("manual-subject").value;
+  const text    = document.getElementById("manual-text").value.trim();
+  if(!subject) { showToast("Select a subject","error"); return; }
+  if(!text)    { showToast("Enter syllabus content","error"); return; }
+  const btn = document.getElementById("manual-btn");
+  btn.textContent = "⏳ Extracting…"; btn.disabled = true;
+  const res = await API.post("/syllabus/manual", {subject, text});
+  if(res?.ok && res.data?.success){ showExtractResult(res.data); showToast("✅ "+res.data.message,"success"); loadSyllabi(); }
+  else showToast(res?.data?.message || "Failed","error");
+  btn.textContent = "🧠 Extract Topics"; btn.disabled = false;
+}
+
+async function useDefault(){
+  const subject = document.getElementById("manual-subject").value || document.getElementById("up-subject").value;
+  if(!subject){ showToast("Select a subject","error"); return; }
+  const res = await API.post("/syllabus/default", {subject});
+  if(res?.ok && res.data?.success){ showExtractResult(res.data); showToast("✅ Default topics loaded","success"); loadSyllabi(); }
+  else showToast(res?.data?.message || "Failed","error");
+}
+
+function showExtractResult(data){
+  window._lastSyllabusId = data.syllabus?.id;
+  localStorage.setItem("examai_last_syllabus", JSON.stringify({
+    id: data.syllabus?.id, topics: data.topics, units: data.units, subject: data.syllabus?.subject
+  }));
+  const el = document.getElementById("extract-result");
+  el.style.display = "block";
+  document.getElementById("extract-stats").innerHTML = `
+    <span class="tag tag-blue">📚 ${data.unit_count || 0} Units</span>
+    <span class="tag tag-teal">❓ ${data.topic_count || 0} Topics</span>
+    <span class="tag tag-easy">🔑 ${(data.keywords||[]).length} Keywords</span>
+    <span class="tag tag-blue">${data.syllabus?.subject || ""}</span>`;
+  const units = data.units || [];
+  document.getElementById("units-preview").innerHTML = units.map(u => `
+    <div style="margin-bottom:14px;padding:14px;background:var(--cream);border-radius:9px;border:1px solid var(--border)">
+      <div style="font-weight:700;font-size:.9rem;margin-bottom:8px;color:var(--teal)">📖 ${escHtml(u.unit_name)}</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap">
+        ${(u.topics||[]).map(t=>`<span class="tag tag-blue" style="font-size:.75rem">${escHtml(t)}</span>`).join("")}
+      </div>
+    </div>`).join("") || "<p style='color:var(--muted)'>No units extracted.</p>";
+  el.scrollIntoView({behavior:"smooth"});
+}
+
+async function loadSyllabi(){
+  const res = await API.get("/syllabus/list");
+  const cnt = document.getElementById("syl-count");
+  const lst = document.getElementById("syllabi-list");
+  if(!res?.ok){ lst.innerHTML="<p style='color:var(--danger)'>Failed to load.</p>"; return; }
+  const syllabi = res.data.syllabi || [];
+  if(cnt) cnt.textContent = `${syllabi.length} syllabus${syllabi.length!==1?"i":""}`;
+  if(!syllabi.length){
+    lst.innerHTML=`<div style="text-align:center;padding:40px;color:var(--muted)">No syllabi yet. Upload one above to get started.</div>`;
+    return;
+  }
+  lst.innerHTML = syllabi.map(s=>`
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid var(--border);gap:12px">
+      <div>
+        <div style="font-weight:600;font-size:.92rem">${escHtml(s.subject)} — ${escHtml(s.title)}</div>
+        <div style="font-size:.78rem;color:var(--muted);margin-top:3px">
+          ${s.unit_count||0} units · ${s.topic_count||0} topics · ${s.created_at} · ${escHtml(s.file_type)}
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-shrink:0">
+        <button class="btn btn-gold-sm btn-sm" onclick="useSyllabus(${s.id},'${escHtml(s.subject)}')">Use →</button>
+        <button class="btn btn-danger-sm btn-sm" onclick="deleteSyllabus(${s.id})">🗑</button>
+      </div>
+    </div>`).join("");
+}
+
+async function useSyllabus(id, subject){
+  const res = await API.get("/syllabus/"+id);
+  if(res?.ok){ showExtractResult({...res.data.syllabus, unit_count:(res.data.syllabus.units||[]).length, topic_count:(res.data.syllabus.topics||[]).length, keywords:res.data.syllabus.keywords||[], units:res.data.syllabus.units, topics:res.data.syllabus.topics}); }
+}
+
+async function deleteSyllabus(id){
+  if(!confirm("Delete this syllabus?")) return;
+  const res = await API.del("/syllabus/"+id);
+  showToast(res?.data?.message||"Deleted", res?.ok?"info":"error");
+  if(res?.ok) loadSyllabi();
+}
+
+function escHtml(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+loadSyllabi();
+</script>
+</body></html>

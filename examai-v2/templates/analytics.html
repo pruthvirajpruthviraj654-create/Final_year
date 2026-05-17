@@ -1,0 +1,73 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Analytics — ExamAI v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/static/css/style.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+</head><body>
+<div class="dash-wrap">
+<aside class="sidebar">
+  <div class="sidebar-header"><div class="logo" style="color:#f0ede8"><div class="logo-mark">Q</div>ExamAI</div></div>
+  <div class="sidebar-user"><div class="user-avatar" id="sidebar-avatar">?</div>
+    <div><div class="user-name" id="sidebar-user-name">Loading</div><div class="user-role" id="sidebar-user-role">Teacher</div></div></div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Main</div>
+    <a href="/dashboard" class="nav-item"><span class="ni-icon">📊</span> Overview</a>
+    <a href="/syllabus-page" class="nav-item"><span class="ni-icon">📄</span> My Syllabi</a>
+    <a href="/generate" class="nav-item"><span class="ni-icon">🧠</span> Generate Paper</a>
+    <a href="/history" class="nav-item"><span class="ni-icon">📋</span> My Papers</a>
+    <div class="nav-section-label">Tools</div>
+    <a href="/qbank" class="nav-item"><span class="ni-icon">🗄</span> Question Bank</a>
+    <a href="/analytics" class="nav-item active"><span class="ni-icon">📈</span> Analytics</a>
+    <div class="nav-section-label">Account</div>
+    <a href="/settings" class="nav-item"><span class="ni-icon">⚙️</span> Settings</a>
+  </nav>
+  <div class="sidebar-footer"><button class="btn-logout" onclick="handleLogout()">🚪 Sign Out</button></div>
+</aside>
+<main class="main-content">
+  <div class="topbar"><h2>Analytics</h2></div>
+  <div class="page-body">
+    <div class="grid-4">
+      <div class="stat-card"><div class="sc-icon">📄</div><div class="sc-num" id="an-papers">0</div><div class="sc-label">Papers Generated</div></div>
+      <div class="stat-card"><div class="sc-icon">❓</div><div class="sc-num" id="an-questions">0</div><div class="sc-label">Questions in Bank</div></div>
+      <div class="stat-card"><div class="sc-icon">📚</div><div class="sc-num" id="an-subjects">0</div><div class="sc-label">Subjects Covered</div></div>
+      <div class="stat-card"><div class="sc-icon">📈</div><div class="sc-num">94%</div><div class="sc-label">AI Accuracy</div></div>
+    </div>
+    <div class="analytics-grid">
+      <div class="chart-card"><h3>Papers Per Month</h3><canvas id="monthlyChart" height="220"></canvas></div>
+      <div class="chart-card"><h3>Question Type Distribution</h3><canvas id="qtypeChart" height="220"></canvas></div>
+    </div>
+    <div class="analytics-grid">
+      <div class="chart-card"><h3>Difficulty Distribution</h3><canvas id="diffChart" height="220"></canvas></div>
+      <div class="chart-card"><h3>Subject Coverage</h3><canvas id="subChart" height="220"></canvas></div>
+    </div>
+  </div>
+</main>
+</div>
+<div id="toast-box"></div>
+<script src="/static/js/app.js"></script>
+<script>
+const P=["#1a1a2e","#c9973a","#0d7377","#c0392b","#2c3e7a","#1a7a4a","#6366f1","#e8b84b"];
+function mk(id,type,labels,data,col,opts){
+  const ctx=document.getElementById(id);if(!ctx||!window.Chart)return;
+  if(Chart.getChart(ctx))Chart.getChart(ctx).destroy();
+  new Chart(ctx,{type,data:{labels,datasets:[{data,backgroundColor:col||P,borderColor:col||P,borderWidth:type==="line"?2:0,fill:type==="line",tension:.4}]},
+    options:{responsive:true,plugins:{legend:{position:"bottom",labels:{font:{family:"Outfit"},padding:10,boxWidth:10}}},...(opts||{})}});
+}
+async function load(){
+  const res=await API.get("/api/analytics/overview");
+  if(!res||!res.ok)return;
+  const d=res.data;
+  const S=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v;};
+  S("an-papers",d.total_papers||0);S("an-questions",d.total_questions||0);S("an-subjects",Object.keys(d.subjects||{}).length);
+  const mo=Object.keys(d.monthly||{});
+  mk("monthlyChart","line",mo.length?mo:["Jan","Feb","Mar","Apr"],mo.length?Object.values(d.monthly):[1,2,3,2],["#c9973a"],{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}});
+  const qt=d.q_types||{};
+  mk("qtypeChart","doughnut",["MCQ","Short","Medium","Descriptive","Long"],[qt.MCQ||5,qt.Short||4,qt.Medium||3,qt.Descriptive||2,qt.Long||2],P,{cutout:"55%"});
+  const df=d.difficulties||{};
+  mk("diffChart","bar",["Easy","Mixed","Medium","Hard"],[df.easy||2,df.mixed||5,df.medium||3,df.hard||1],["#0d7377","#c9973a","#2c3e7a","#c0392b"],{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}});
+  const sb=d.subjects||{};
+  mk("subChart","doughnut",Object.keys(sb).length?Object.keys(sb):["No data"],Object.values(sb).length?Object.values(sb):[1],P,{cutout:"55%"});
+}
+load();
+</script>
+</body></html>

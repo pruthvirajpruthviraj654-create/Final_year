@@ -1,0 +1,76 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>My Papers — ExamAI v2</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/static/css/style.css"/></head><body>
+<div class="dash-wrap">
+  <aside class="sidebar">
+    <div class="sidebar-header"><div class="logo" style="color:#f0ede8"><div class="logo-mark">Q</div>ExamAI</div></div>
+    <div class="sidebar-user"><div class="user-avatar" id="sidebar-avatar">?</div>
+      <div><div class="user-name" id="sidebar-user-name">Loading…</div><div class="user-role" id="sidebar-user-role">Teacher</div></div></div>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Main</div>
+      <a href="/dashboard"     class="nav-item"><span class="ni-icon">📊</span> Overview</a>
+      <a href="/syllabus-page" class="nav-item"><span class="ni-icon">📄</span> My Syllabi</a>
+      <a href="/generate"      class="nav-item"><span class="ni-icon">🧠</span> Generate Paper</a>
+      <a href="/history"       class="nav-item active"><span class="ni-icon">📋</span> My Papers</a>
+      <div class="nav-section-label">Tools</div>
+      <a href="/qbank"         class="nav-item"><span class="ni-icon">🗄</span> Question Bank</a>
+      <a href="/analytics"     class="nav-item"><span class="ni-icon">📈</span> Analytics</a>
+      <div class="nav-section-label">Account</div>
+      <a href="/settings"      class="nav-item"><span class="ni-icon">⚙️</span> Settings</a>
+    </nav>
+    <div class="sidebar-footer"><button class="btn-logout" onclick="handleLogout()">🚪 Sign Out</button></div>
+  </aside>
+  <main class="main-content">
+    <div class="topbar"><h2>My Papers</h2>
+      <div class="topbar-right"><a href="/generate" class="btn btn-gold-sm btn-sm">+ New Paper</a></div>
+    </div>
+    <div class="page-body">
+      <div id="history-list"><div style="text-align:center;padding:60px;color:var(--muted)">Loading…</div></div>
+    </div>
+  </main>
+</div>
+<div id="toast-box"></div>
+<script src="/static/js/app.js"></script>
+<script>
+async function loadHistory(){
+  const res = await API.get("/paper/list?per_page=50");
+  const el  = document.getElementById("history-list");
+  if(!res?.ok){el.innerHTML="<div style='color:var(--danger);padding:20px'>Failed.</div>";return;}
+  const papers = res.data.papers||[];
+  if(!papers.length){
+    el.innerHTML=`<div class="card" style="text-align:center;padding:60px">
+      <div style="font-size:3rem;margin-bottom:12px">📋</div>
+      <p style="color:var(--muted)">No papers yet. <a href="/generate" style="color:var(--gold)">Generate your first →</a></p></div>`;
+    return;
+  }
+  el.innerHTML=papers.map(p=>`
+    <div class="hist-item">
+      <div class="hist-info">
+        <h4>${p.title}</h4>
+        <div class="hist-meta">
+          <span>📅 ${p.created_at}</span><span>📊 ${p.total_marks} marks</span>
+          <span>⏱ ${p.duration||"3 Hours"}</span>
+          ${p.syllabus_based?'<span style="color:var(--teal)">📄 Syllabus-based</span>':''}
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px">
+          <span class="tag tag-blue">${p.subject}</span>
+          <span class="tag tag-teal">${p.difficulty}</span>
+          <span class="tag tag-blue">${p.exam_type||""}</span>
+        </div>
+      </div>
+      <div class="hist-actions">
+        <a href="/paper/${p.id}/pdf?token=${localStorage.getItem("examai_token")}" class="btn btn-gold-sm btn-sm">📄 PDF</a>
+        <button class="btn btn-danger-sm btn-sm" onclick="delPaper(${p.id})">🗑</button>
+      </div>
+    </div>`).join("");
+}
+async function delPaper(id){
+  if(!confirm("Delete this paper?"))return;
+  const res=await API.del("/paper/"+id);
+  showToast(res?.data?.message||"Deleted",res?.ok?"info":"error");
+  if(res?.ok)loadHistory();
+}
+loadHistory();
+</script>
+</body></html>
